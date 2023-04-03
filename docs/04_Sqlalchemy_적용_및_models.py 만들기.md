@@ -41,6 +41,7 @@
    
 7. root에 `models.py`를 만들고 `db(sqlalchemy in app.py)`, `Base`, `session`을 import한다.
    - model의 column 정의시 session이 사용되진 않는다.
+   - **나중에 `@classmethod 내부에서 commit/rollback할 때 쓴다!`**
    ```python
    from app import db, session, Base
    

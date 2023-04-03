@@ -1,3 +1,5 @@
+https://www.youtube.com/watch?v=lxd7qSo5vNc&list=PLWQhUNXl0LnjBIaE72hq1RkDsbWWSgeUr&index=5
+
 
 1. app.py에 전역변수로 에시데이터를 만들어준다.
     ```python
