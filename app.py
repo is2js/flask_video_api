@@ -1,3 +1,6 @@
+import logging
+import os.path
+
 from flask import Flask, jsonify, request
 import sqlalchemy as db  # 각 model들이 Column 등 정의시 갖다 씀.
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -48,57 +51,60 @@ from models import *
 Base.metadata.create_all(bind=engine)
 
 
+# logger
+def setup_logger():
+    # 1. logger객체를 만들고, 수준을 정해준다.
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    # 2. formatter를 작성한다
+    formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+
+    # 3. 로그 파일을 지정 handler를 만들고, formatter를 지정해준 뒤, logger객체에 handler에 추가한다.
+    # file_handler = logging.FileHandler('log/api.log')
+    # - 폴더가 없으면 FileNotFoundError가 나므로 미리 만들거나 없으면 만들어줘야한다.
+    LOG_FOLDER = 'log/'
+    # 나중에는 LOG_FOLDER = os.path.join(BASE_FOLDER, 'log/')
+    if not os.path.exists(LOG_FOLDER):
+        os.mkdir(LOG_FOLDER)
+    file_handler = logging.FileHandler(os.path.join(LOG_FOLDER, 'api.log'))
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    return logger
+
+logger = setup_logger()
+
 @app.route('/tutorials', methods=['GET'])
 @jwt_required()
 @marshal_with(VideoSchema(many=True))
 def get_list():
-    # return jsonify(tutorials)
-    # videos = Video.query.all()
-    user_id = get_jwt_identity()
-    videos = Video.query.filter(Video.user_id == user_id).all()
-
-    """
-    serialized = []
-    for video in videos:
-        serialized.append({
-            'id': video.id,
-            'user_id': video.user_id,
-            'name': video.name,
-            'description': video.description,
-        })
-    return jsonify(serialized)
-    """
-    # .dump될 대상이 객체list(컬렉션)이라면, many=True옵션을 준다.
-    # schema = VideoSchema(many=True)
-    # return jsonify(schema.dump(videos))
-
+    try:
+        user_id = get_jwt_identity()
+        videos = Video.query.filter(Video.user_id == user_id).all()
+    except Exception as e:
+        logger.warning(
+            f'user: {user_id} tutorials - read action failed with errors: {e}'
+        )
+        return [{'message': str(e)}], 400
     return videos
 
 
 @app.route('/tutorials', methods=['POST'])
 @jwt_required()
-# def update_list():
 @use_kwargs(VideoSchema)
 @marshal_with(VideoSchema)
 def update_list(**kwargs):
-    # new_one = Video(**request.json)
-
-    # @jwt_required()를 통과하면, flask의 g변수에 token정보를 집어넣어놓고 잇는데,
-    # get_jwt_identity를 통해, token생성시 사용된 identity = self(user).id를 다시 반환해준다.
-    user_id = get_jwt_identity()
-    # new_one = Video(user_id=user_id, **request.json)
-    new_one = Video(user_id=user_id, **kwargs)
-
-    session.add(new_one)
-    session.commit()
-
-    # serialized = {
-    #     'id': new_one.id,
-    #     'user_id': new_one.user_id,
-    #     'name': new_one.name,
-    #     'description': new_one.description,
-    # }
-    # return jsonify(serialized)
+    try:
+        user_id = get_jwt_identity()
+        new_one = Video(user_id=user_id, **kwargs)
+        session.add(new_one)
+        session.commit()
+    except Exception as e:
+        logger.warning(
+            f'user: {user_id} tutorial - create action failed with errors: {e}'
+        )
+        return {'message': str(e)}, 400
     return new_one
 
 
@@ -107,27 +113,23 @@ def update_list(**kwargs):
 @use_kwargs(VideoSchema)
 @marshal_with(VideoSchema)
 def update_tutorial(tutorial_id, **kwargs):
-    user_id = get_jwt_identity()
-    item = Video.query.filter(
-        Video.id == tutorial_id,
-        Video.user_id == user_id
-    ).first()
-    # params = request.json
-    if not item:
-        return {'message': 'No tutorials with this id'}, 404
+    try:
+        user_id = get_jwt_identity()
+        item = Video.query.filter(
+            Video.id == tutorial_id,
+            Video.user_id == user_id
+        ).first()
 
-    # for key, value in params.items():
-    for key, value in kwargs.items():
-        setattr(item, key, value)
-    session.commit()
-
-    # serialized = {
-    #     'id': item.id,
-    #     'user_id': item.user_id,
-    #     'name': item.name,
-    #     'description': item.description,
-    # }
-    # return serialized
+        if not item:
+            return {'message': 'No tutorials with this id'}, 404
+        for key, value in kwargs.items():
+            setattr(item, key, value)
+        session.commit()
+    except Exception as e:
+        logger.warning(
+            f'user: {user_id} tutorial:{tutorial_id} - update action failed with errors: {e}'
+        )
+        return {'message': str(e)}, 400
     return item
 
 
@@ -135,17 +137,23 @@ def update_tutorial(tutorial_id, **kwargs):
 @jwt_required()
 @marshal_with(VideoSchema)
 def delete_tutorial(tutorial_id):
-    user_id = get_jwt_identity()
-    item = Video.query.filter(
-        Video.id == tutorial_id,
-        Video.user_id == user_id
-    ).first()
+    try:
+        user_id = get_jwt_identity()
+        item = Video.query.filter(
+            Video.id == tutorial_id,
+            Video.user_id == user_id
+        ).first()
 
-    if not item:
-        return {'message': 'No tutorials with this id'}, 404
+        if not item:
+            return {'message': 'No tutorials with this id'}, 404
 
-    session.delete(item)
-    session.commit()
+        session.delete(item)
+        session.commit()
+    except Exception as e:
+        logger.warning(
+            f'user: {user_id} tutorial:{tutorial_id} - delete action failed with errors: {e}'
+        )
+        return {'message': str(e)}, 400
     return '', 204
 
 
@@ -153,38 +161,67 @@ def delete_tutorial(tutorial_id):
 @use_kwargs(UserSchema)
 @marshal_with(AuthSchema)
 def register(**kwargs):
-    # params = request.json
-    # user = User(**params)
-    user = User(**kwargs)
-    # 1. 회원정보로 -> User모델 객체를 만들고 -> session.add해서 저장한다.
-    session.add(user)
-    session.commit()
-    # 2. 회원이 등록되면, 로그인 한것으로 간주하여 -> 그 때 token을 발급한다.
-    token = user.get_token()
-    # 3. 응답시 'access_token' key로 내려보낸다
+    try:
+        user = User(**kwargs)
+        session.add(user)
+        session.commit()
+        token = user.get_token()
+    except Exception as e:
+        logger.warning(
+            f'registration failed with errors: {e}'
+        )
+        return {'message': str(e)}, 400
     return {'access_token': token}
 
 
 @app.route('/login', methods=['POST'])
-@use_kwargs(UserSchema(only=('email', 'password'))) # only 미작성시 register payload기준에 못미쳐서 422 뜸.
+@use_kwargs(UserSchema(only=('email', 'password')))  # only 미작성시 register payload기준에 못미쳐서 422 뜸.
 @marshal_with(AuthSchema)
 def login(**kwargs):
-    # params = request.json
-    # params에는 email/password 2개가 인증=로그인에 필요한 정보로서 들어온다
-    # -> 로그인(인증)메서드에 **로 dict unpacking해서,
-    # -> args로 정의했지만 변수명에 맞게 자등으로 들어간다.
-
-    # 1. 인증메서드 = 조회 + 로그인 확인 후 반환까지 한번에 해주니, user로 받는다.
-    # user = User.authenticate(**params)
-    user = User.authenticate(**kwargs)
-    # 2. 로그인 성공시, token을 발급하여 반환한다.
-    token = user.get_token()
+    try:
+        user = User.authenticate(**kwargs)
+        token = user.get_token()
+    except Exception as e:
+        logger.warning(
+            f'login with email{kwargs["email"]} failed with errors: {e}'
+        )
+        return {'message': str(e)}, 400
     return {'access_token': token}
 
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     session.remove()
+
+
+@app.errorhandler(422)
+def error_handler(err):
+    # error는 werkzeug.exceptions에 있는 (422)에 대한 entity가 내려온다.
+    # 만약 code를 지정하지 않으면, 인자에는 status가 내려오며
+    #  -> 직접 from werkzeug.exceptions import Forbidden, Unauthorized을 import해서 정보를 나열해야한다.
+    # 참고: https://github.com/zain2323/docterlyapi/blob/main/api/auth/authentication.py
+    # typo(err) >>> <class 'werkzeug.exceptions.UnprocessableEntity'>
+    #               code, name, description, data
+
+    # 하지만, [err.data]에 들어가야지만, marshmallow가 내려준 상세 에러정보를 볼 수 있다.
+    # -> headers, messages, schema
+    # {'messages': {'json': {'name': ['Missing data for required field.'], 'description': ['Missing data for required field.']}}, 'schema': <VideoSchema(many=False)>, 'headers': None}
+
+    # 1. 422에러를 일으킬 때의 header정보를 가져온다.
+    headers = err.data.get('headers', None)
+
+    # 2. 422에러 발생시 인자에서 'messages'(list)를 주므로 message도 가져온다.
+    #   - 없을 경우 defaultt 에러message list를 반환한다.
+    messages = err.data.get('messages', ['Invalid request'])
+    # 4. 로그도 찍어준다.
+    logger.warning(
+        f'Invalid input params: {messages}'
+    )
+    # 3. header정보가 있다면, tuple 3번째 인자로 같이 반환한다
+    if headers:
+        return jsonify({'message': messages}), 400, headers
+    else:
+        return jsonify({'message': messages}), 400
 
 
 # docs register view_functions
