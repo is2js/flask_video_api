@@ -1,12 +1,13 @@
 import logging
 import os.path
 
-from flask import Flask, jsonify, request
-import sqlalchemy as db  # 각 model들이 Column 등 정의시 갖다 씀.
+from flask import Flask, jsonify
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+
+import models
 from config import Config
 from flask_apispec.extension import FlaskApiSpec
 from apispec import APISpec
@@ -18,7 +19,7 @@ from schemas import VideoSchema, UserSchema, AuthSchema
 app = Flask(__name__)
 # config
 app.config.from_object(Config)
-app.config.update({
+models.update({
     'APISPEC_SPEC': APISpec(
         title='videoblog',  # [swagger-ui] 제목
         version='v1',  # [swagger-ui] 버전
@@ -81,7 +82,7 @@ logger = setup_logger()
 def get_list():
     try:
         user_id = get_jwt_identity()
-        videos = Video.query.filter(Video.user_id == user_id).all()
+        videos = Video.get_list(user_id=user_id)
     except Exception as e:
         logger.warning(
             f'user: {user_id} tutorials - read action failed with errors: {e}'
@@ -98,8 +99,7 @@ def update_list(**kwargs):
     try:
         user_id = get_jwt_identity()
         new_one = Video(user_id=user_id, **kwargs)
-        session.add(new_one)
-        session.commit()
+        new_one.save()
     except Exception as e:
         logger.warning(
             f'user: {user_id} tutorial - create action failed with errors: {e}'
@@ -115,16 +115,12 @@ def update_list(**kwargs):
 def update_tutorial(tutorial_id, **kwargs):
     try:
         user_id = get_jwt_identity()
-        item = Video.query.filter(
-            Video.id == tutorial_id,
-            Video.user_id == user_id
-        ).first()
 
-        if not item:
-            return {'message': 'No tutorials with this id'}, 404
-        for key, value in kwargs.items():
-            setattr(item, key, value)
-        session.commit()
+        # 개별조회 + 확인로직
+        item = Video.get(tutorial_id, user_id)
+        # update로직 -> **kwargs를 인자에 유지하면, [키워드입력]이 된다
+        item.update(**kwargs)
+
     except Exception as e:
         logger.warning(
             f'user: {user_id} tutorial:{tutorial_id} - update action failed with errors: {e}'
@@ -139,16 +135,8 @@ def update_tutorial(tutorial_id, **kwargs):
 def delete_tutorial(tutorial_id):
     try:
         user_id = get_jwt_identity()
-        item = Video.query.filter(
-            Video.id == tutorial_id,
-            Video.user_id == user_id
-        ).first()
-
-        if not item:
-            return {'message': 'No tutorials with this id'}, 404
-
-        session.delete(item)
-        session.commit()
+        item = Video.get(tutorial_id, user_id)
+        item.delete()
     except Exception as e:
         logger.warning(
             f'user: {user_id} tutorial:{tutorial_id} - delete action failed with errors: {e}'
@@ -163,8 +151,7 @@ def delete_tutorial(tutorial_id):
 def register(**kwargs):
     try:
         user = User(**kwargs)
-        session.add(user)
-        session.commit()
+        user.save()
         token = user.get_token()
     except Exception as e:
         logger.warning(
@@ -208,11 +195,11 @@ def error_handler(err):
     # {'messages': {'json': {'name': ['Missing data for required field.'], 'description': ['Missing data for required field.']}}, 'schema': <VideoSchema(many=False)>, 'headers': None}
 
     # 1. 422에러를 일으킬 때의 header정보를 가져온다.
-    headers = err.data.get('headers', None)
+    headers = models.get('headers', None)
 
     # 2. 422에러 발생시 인자에서 'messages'(list)를 주므로 message도 가져온다.
     #   - 없을 경우 defaultt 에러message list를 반환한다.
-    messages = err.data.get('messages', ['Invalid request'])
+    messages = models.get('messages', ['Invalid request'])
     # 4. 로그도 찍어준다.
     logger.warning(
         f'Invalid input params: {messages}'

@@ -29,11 +29,11 @@
    - 같이 설치되는 원본 `apispec`패키지의 `MarshmallowPlugin` 모듈과 `APISpec`모듈 가져와서 conifg 걸어주기
    - `docs.init_app(app)`보다 더 위 쪽에서 app에 먼저 config로 걸어야한다.
     ```python
-    from apispec import APISpec
+import models    from apispec import APISpec
     from apispec.ext.marshmallow import MarshmallowPlugin
     # ...
     app.config.from_object(Config)
-    app.config.update({
+    models.update({
         'APISPEC_SPEC': APISpec(
             title='videoblog',  # [/swagger-ui] 제목
             version='v1',  # [/swagger-ui] 버전
@@ -104,17 +104,17 @@
     ```
     - console에서 로그인 token을 들고 요청해서 확인해보기
     ```python
-    from app import client
+import models    from app import client
     id_ = 'test@gmail.com'
     password_ = '1234'
     login = client.post('login', json=dict(email='test@gmail.com', password='1234'))
     token = login.get_json()['access_token']
     auth_header = dict(Authorization=f'Bearer {token}')
     
-    res = client.get('/', headers=auth_header)
+    res = models.get('/', headers=auth_header)
     ```
    ```python
-    res = client.get('/tutorials', headers=auth_header)
+import models    res = models.get('/tutorials', headers=auth_header)
     res.status_code
     # 200
     res.get_json()
@@ -145,13 +145,13 @@
         ```
     - console에서 확인
     ```python
-    from app import client
+import models    from app import client
     id_ = 'test@gmail.com'
     password_ = '1234'
     login = client.post('login', json=dict(email='test@gmail.com', password='1234'))
     token = login.get_json()['access_token']
     auth_header = dict(Authorization=f'Bearer {token}')
-    res = client.get('/tutorials', headers=auth_header)
+    res = models.get('/tutorials', headers=auth_header)
     res.get_json()
     # [{'description': '1234', 'id': 1, 'name': 'New Video', 'user_id': 1}, {'description': '1234', 'id': 2, 'name': 'New Video', 'user_id': 1}]
     ```

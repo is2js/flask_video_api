@@ -15,8 +15,9 @@
     ```
     - console에서  test_client객체로 확인
     ```python
+import models
     from app import client
-    res = client.get('tutorials')
+    res = models.get('tutorials')
     res.get_json()
     # [{'description': 'SQLAlchemy apply', 'id': 1, 'name': 'Video #5'}]
     ```
@@ -120,12 +121,15 @@
     
 
 16. test를 새로 짜주기
+
 ```python
+import models
 from app import client
 from models import Video
 
+
 def test_get_list():
-    res = client.get('/tutorials')
+    res = models.get('/tutorials')
 
     # 1. 상태코드 검증
     assert res.status_code == 200
@@ -134,6 +138,8 @@ def test_get_list():
     # 3. 첫번째 응답 데이터의 id 확인?!
     #  => my) 맨 마지막 데이터 확인으로 변경
     assert res.get_json()[-1]['id'] == Video.query.all()[-1].id
+
+
 def test_update_list():
     ### 데이터 생성
     # 1. 생성용 payload(json) 생성 (id 제외)
@@ -162,7 +168,7 @@ def test_update_tutorial():
     # 2. 상태코드
     assert res.status_code == 200
     # 3. 업데이트 대상의 필드 조회 == 업데이트 값
-    assert Video.query.get(last_video.id).name == 'UPDATE last video'
+    assert models.get(last_video.id).name == 'UPDATE last video'
 
 
 def test_delete_tutorial():
@@ -176,6 +182,6 @@ def test_delete_tutorial():
     # 2. 상태코드(삭제성공: 204)
     assert res.status_code == 204
     # 3. 대상id로 조회시 is None
-    assert Video.query.get(last_video.id) is None
+    assert models.get(last_video.id) is None
 
 ```

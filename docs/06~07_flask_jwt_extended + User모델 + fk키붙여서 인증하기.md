@@ -183,10 +183,11 @@
            #...
        ```
    - console에서 **`비로그인으로 @jwt_required() 접근`시, stats_code 확인**
-     - **jwt extension에서 `401에러`와 `msg=`에 `인증header가 없음`을 자동으로 내려준다.** 
+     - **jwt extension에서 `401에러`와 `msg=`에 `인증header가 없음`을 자동으로 내려준다.**
      ```python
+import models
      from app import client
-     res = client.get('/tutorials')
+     res = models.get('/tutorials')
      res.status_code
      # 401
      res.get_json()
@@ -194,15 +195,16 @@
      ```
 
 14. console에서 login날려 받은 `access_token`을 `@jwt_required()` 필요한 route 요청시 `headers=`에 추가하여 요청하기
-    - 요청 headers = {} 의 dict안에 `Authorization` key / `Bearer [access_token]` value로 같이 보내면, 로그인된 상태로 간주 된다. 
+    - 요청 headers = {} 의 dict안에 `Authorization` key / `Bearer [access_token]` value로 같이 보내면, 로그인된 상태로 간주 된다.
     ```python
+import models
     from app import client
     
     log = client.post('login', json=dict(email='test@gmail.com', password='1234'))
     log.get_json()
     # {'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY4MDU5Mzk2MiwianRpIjoiYmQ0YWUwMzEtMzc3ZC00NjM5LThhMGItNjk1MWE3OTQ2NTEzIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNjgwNTkzOTYyLCJleHAiOjE2ODI2Njc1NjJ9.oGIU1uozNQVmy0WVBeZK9iZNtYKJJKZUWGV8yW4R8Lk'}
     token = log.get_json()['access_token']
-    res = client.get('/tutorials', headers=dict(Authorization=f'Bearer {token}'))
+    res = models.get('/tutorials', headers=dict(Authorization=f'Bearer {token}'))
     res.status_code
     # 200
     res.get_json()
@@ -286,21 +288,25 @@
         ```
        
 16. console에서 로그인 후 -> token들고 생성 ->token들어서 해당유저 데이터만 조회해보기
+
 ```python
+import models
 from app import client
+
 # 로그인
 log = client.post('login', json=dict(email='test@gmail.com', password='1234'))
 token = log.get_json()['access_token']
 
 # 로그인 token정보 header에 달고 생성 요청
-res = client.post('/tutorials', headers=dict(Authorization=f'Bearer {token}'), json=dict(name='New Video', description='1234'))
+res = client.post('/tutorials', headers=dict(Authorization=f'Bearer {token}'),
+                  json=dict(name='New Video', description='1234'))
 res.status_code
 # 200
 res.get_json()
 # {'description': '1234', 'id': 2, 'name': 'New Video', 'user_id': 1}
 
 # 로그인 token정보 header에 달고 조회 요청
-res = client.get('/tutorials', headers=dict(Authorization=f'Bearer {token}'))
+res = models.get('/tutorials', headers=dict(Authorization=f'Bearer {token}'))
 res.status_code
 # 200
 res.get_json()

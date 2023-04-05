@@ -25,13 +25,13 @@
     ```
     - console에서 테스트
     ```python
-    from app import client
+import models    from app import client
     id_ = 'test@gmail.com'
     password_ = '1234'
     login = client.post('login', json=dict(email='test@gmail.com', password='1234'))
     token = login.get_json()['access_token']
     auth_header = dict(Authorization=f'Bearer {token}')
-    res = client.get('/tutorials', headers=auth_header)
+    res = models.get('/tutorials', headers=auth_header)
     # C:\Users\cho_desktop\PycharmProjects\flaskProject\venv\lib\site-packages\apispec\ext\marshmallow\common.py:129: UserWarning: Multiple schemas resolved to the name User. The name has been modified. Either manually add each of the schemas with a different name or provide a custom schema_name_resolver.
     #   warnings.warn(
     res.status_code
@@ -70,14 +70,14 @@
       - code, name, description속성을 쓸 수 있지만, 상세에러는 `data`속성에 접근해야한다.
       - err.data에는 marshmallow가 던져주는 `headers`, `messages`, schema가 들어가있는데 이것들을 사용해서 작성해준다.
    ```python
-    @app.errorhandler(422)
+import models    @app.errorhandler(422)
     def error_handler(err):
         # 1. 422에러를 일으킬 때의 header정보를 가져온다.
-        headers = err.data.get('headers', None)
+        headers = models.get('headers', None)
         
         # 2. 422에러 발생시 인자에서 'messages'(list)를 주므로 message도 가져온다.
         #   - 없을 경우 defaultt 에러message list를 반환한다.
-        messages = err.data.get('messages', ['Invalid request'])
+        messages = models.get('messages', ['Invalid request'])
         # 3. header정보가 있다면, tuple 3번째 인자로 같이 반환한다
         if headers:
             return jsonify({'message' : messages}), 400, headers
@@ -148,14 +148,14 @@
         videos = Video.query.filter(Video.user_id == user_id).all()
     ```
     ```python
-    from app import client
+import models    from app import client
     email_ = 'test@gmail.com'
     password_ = '1234'
     login = client.post('login', json=dict(email=email_, password=password_))
     token = login.get_json()['access_token']
     auth_header = dict(Authorization=f'Bearer {token}')
    
-    res = client.get('/tutorials', headers=auth_header)
+    res = models.get('/tutorials', headers=auth_header)
     ```
     - `log/api.log`파일
         ```
@@ -169,13 +169,13 @@
         videos = Video.query.filter(Video.user_id == user_id).all()
     ```
     ```python
-    from app import client
+import models    from app import client
     email_ = 'test@gmail.com'
     password_ = '1234'
     login = client.post('login', json=dict(email=email_, password=password_))
     token = login.get_json()['access_token']
     auth_header = dict(Authorization=f'Bearer {token}')
-    res = client.get('/tutorials', headers=auth_header)
+    res = models.get('/tutorials', headers=auth_header)
     ```
     ```python
     :app:WARNING:user: 1 tutorials - read action failed with errors: test

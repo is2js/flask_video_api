@@ -1,3 +1,4 @@
+import models
 from app import client
 from models import Video
 
@@ -13,7 +14,7 @@ from models import Video
 #     assert res.get_json()[0]['id'] == 1
 
 def test_get_list():
-    res = client.get('/tutorials')
+    res = models.get('/tutorials')
 
     # 1. 상태코드 검증
     assert res.status_code == 200
@@ -71,7 +72,7 @@ def test_update_tutorial():
     # 2. 상태코드
     assert res.status_code == 200
     # 3. 업데이트 대상의 필드 조회 == 업데이트 값
-    assert Video.query.get(last_video.id).name == 'UPDATE last video'
+    assert models.get(last_video.id).name == 'UPDATE last video'
 
 
 def test_delete_tutorial():
@@ -85,5 +86,5 @@ def test_delete_tutorial():
     # 2. 상태코드(삭제성공: 204)
     assert res.status_code == 204
     # 3. 대상id로 조회시 is None
-    assert Video.query.get(last_video.id) is None
+    assert models.get(last_video.id) is None
 

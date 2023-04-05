@@ -18,11 +18,12 @@
     - 전체조회시 list의 길이 + 첫번째 item의 id확인
     - 생성요청시 전체list반환되어, 전체길이(기존+1) + 마지막데이터의 unique필드 비교
     ```python
+import models
     from app import client
 
     def test_get_list():
         ### 전체 조회
-        res = client.get('/tutorials')
+        res = models.get('/tutorials')
     
         # 1. 상태코드 검증
         assert res.status_code == 200
