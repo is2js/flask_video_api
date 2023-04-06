@@ -13,7 +13,17 @@ class Video(Base):
     description = db.Column(db.String(500), nullable=False)
 
     @classmethod
-    def get_list(cls, user_id):
+    def get_list(cls):
+        try:
+            videos = cls.query.all()
+            session.close()
+        except Exception:
+            session.rollback()
+            raise
+        return videos
+
+    @classmethod
+    def get_user_list(cls, user_id):
         try:
             # 1. 바로 return 쿼리.결과()가 아니라 => 변수로 추출 + TA session처리 in try만 하고, 성공시 raise안걸리고 return되게 한다
             videos = cls.query.filter(cls.user_id == user_id).all()

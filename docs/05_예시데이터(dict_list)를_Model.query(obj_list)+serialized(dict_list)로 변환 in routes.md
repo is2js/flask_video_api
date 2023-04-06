@@ -1,7 +1,7 @@
 12. 예시데이터( dict_list) -> 모델.query조회(객체_list) + 빈list에 dict 변환하여 append하여 응답하도록 변경
     ```python
     @app.route('/tutorials', methods=['GET'])
-    def get_list():
+    def get_user_list():
         # return jsonify(tutorials)
         videos = Video.query.all()
         serialized = []

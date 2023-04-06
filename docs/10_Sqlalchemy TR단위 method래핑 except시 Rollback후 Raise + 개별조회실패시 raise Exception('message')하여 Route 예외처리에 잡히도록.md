@@ -12,7 +12,7 @@
            user_id = get_jwt_identity()
            videos = get_by_user_id(user_id)
             
-       def get_list(user_id):
+       def get_user_list(user_id):
            return Video.query.filter(Video.user_id == user_id).all()
        ```
    2. 추출한 메서드를 Video(해당 모델) 내부 메서드로 옮기되, Video가 내부에 사용되면 @classmethod로 바꾸고, cls인자로 바꿔준다.
@@ -20,12 +20,12 @@
 import video_api.main.views       # app.py
        try:
            user_id = get_jwt_identity()
-           videos = video_api.main.views.get_list(user_id=user_id)
+           videos = video_api.main.views.get_user_list(user_id=user_id)
        ```
        ```python
        # models.py
        @classmethod
-       def get_list(cls, user_id):
+       def get_user_list(cls, user_id):
            return cls.query.filter(cls.user_id == user_id).all()
        ```
 
@@ -35,7 +35,7 @@ import video_api.main.views       # app.py
       ```python
       # models.py
       @classmethod
-      def get_list(cls, user_id):
+      def get_user_list(cls, user_id):
         try:
             # 1. 바로 return 쿼리.결과()가 아니라 => 변수로 추출 + TA session처리 in try만 하고, 성공시 raise안걸리고 return되게 한다
             videos = cls.query.filter(cls.user_id == user_id).all()

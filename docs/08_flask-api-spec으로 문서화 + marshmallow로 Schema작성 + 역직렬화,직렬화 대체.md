@@ -81,7 +81,7 @@ import models    from apispec import APISpec
     #...
     @app.route('/tutorials', methods=['GET'])
     @jwt_required()
-    def get_list():
+    def get_user_list():
         user_id = get_jwt_identity()
         videos = Video.query.filter(
             Video.user_id == user_id
@@ -126,7 +126,7 @@ import models    res = models.get('/tutorials', headers=auth_header)
         ```python
         @app.route('/tutorials', methods=['GET'])
         @jwt_required()
-        def get_list():
+        def get_user_list():
             user_id = get_jwt_identity()
             videos = Video.query.filter(Video.user_id == user_id).all()
             schema = VideoSchema(many=True)
@@ -137,7 +137,7 @@ import models    res = models.get('/tutorials', headers=auth_header)
         @app.route('/tutorials', methods=['GET'])
         @jwt_required()
         @marshal_with(VideoSchema(many=True))
-        def get_list():
+        def get_user_list():
             user_id = get_jwt_identity()
             videos = Video.query.filter(Video.user_id == user_id).all()
             return videos
@@ -364,7 +364,7 @@ import models    from app import client
         session.remove()
     
     # docs register view_functions
-    docs.register(get_list)
+    docs.register(get_user_list)
     
     if __name__ == '__main__':
         app.run(host='127.0.0.1', port='5000')

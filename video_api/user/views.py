@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify
 from flask_apispec import use_kwargs, marshal_with
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from video_api import logger, docs
 from video_api.schemas import UserSchema, AuthSchema
 from video_api.models import User
+from video_api.base_view import BaseView
 
 users = Blueprint('users', __name__)
 
@@ -39,6 +41,25 @@ def login(**kwargs):
     return {'access_token': token}
 
 
+class ProfileView(BaseView):
+    #  get route 내용을 작성한다. 데코레이터도 여기서 단다
+    @jwt_required()
+    @marshal_with(UserSchema)
+    def get(self):
+        user_id = get_jwt_identity()
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                raise Exception('User not found')
+
+        except Exception as e:
+            logger.warning(
+                f'user: {user_id} failed to read profile: {e}'
+            )
+        return user
+
+
+
 @users.errorhandler(422)
 def error_handler(err):
     headers = err.data.get('headers', None)
@@ -53,3 +74,4 @@ def error_handler(err):
 
 docs.register(register, blueprint='users')
 docs.register(login, blueprint='users')
+ProfileView.register(users, docs, '/profile', 'profileview')

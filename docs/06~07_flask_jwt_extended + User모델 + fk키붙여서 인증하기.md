@@ -179,7 +179,7 @@
        ```python
        @app.route('/tutorials', methods=['GET'])
        @jwt_required()
-       def get_list():
+       def get_user_list():
            #...
        ```
    - console에서 **`비로그인으로 @jwt_required() 접근`시, stats_code 확인**
@@ -267,7 +267,7 @@ import models
         ```python
         @app.route('/tutorials', methods=['GET'])
         @jwt_required()
-        def get_list():
+        def get_user_list():
             # return jsonify(tutorials)
             # videos = Video.query.all()
             user_id = get_jwt_identity()

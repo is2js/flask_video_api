@@ -5,7 +5,7 @@
     @app.route('/tutorials', methods=['GET'])
     @jwt_required()
     @marshal_with(VideoSchema(many=True))
-    def get_list():
+    def get_user_list():
         try:
             user_id = get_jwt_identity()
             videos = Video.query.filter(Video.user_id == user_id).all()
@@ -42,7 +42,7 @@ import models    from app import client
    - **임의로 many=True 직렬화에, 예외발생시 객체 1개만 반환하면 message 내용이 아예 안내려간다.**
       - **임의로 []로를 씌운 dict message를 반환한다.**
       ```python
-      def get_list():
+      def get_user_list():
            try:
                assert None
                user_id = get_jwt_identity()

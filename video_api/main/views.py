@@ -5,8 +5,21 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from video_api import logger, docs
 from video_api.schemas import VideoSchema
 from video_api.models import Video
+from video_api.base_view import BaseView
 
 videos = Blueprint('videos', __name__)
+
+class ListView(BaseView):
+    @marshal_with(VideoSchema(many=True))
+    def get(self):
+        try:
+            videos = Video.get_list()
+        except Exception as e:
+            logger.warning(
+                f'videos - read action with errors: {e}'
+            )
+            return[{'message': str(e)}], 400
+        return videos
 
 @videos.route('/tutorials', methods=['GET'])
 @jwt_required()
@@ -14,7 +27,7 @@ videos = Blueprint('videos', __name__)
 def get_list():
     try:
         user_id = get_jwt_identity()
-        videos = Video.get_list(user_id=user_id)
+        videos = Video.get_user_list(user_id=user_id)
     except Exception as e:
         logger.warning(
             f'user: {user_id} tutorials - read action failed with errors: {e}'
@@ -93,3 +106,5 @@ docs.register(get_list, blueprint='videos')
 docs.register(update_list, blueprint='videos')
 docs.register(update_tutorial, blueprint='videos')
 docs.register(delete_tutorial, blueprint='videos')
+
+ListView.register(videos, docs, '/main', 'listview')

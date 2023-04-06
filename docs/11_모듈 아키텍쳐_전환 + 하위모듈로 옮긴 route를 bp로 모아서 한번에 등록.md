@@ -201,7 +201,7 @@
     app.register_blueprint(users)
         
     # docs register view_functions
-    docs.register(get_list)
+    docs.register(get_user_list)
     docs.register(update_list)
     docs.register(update_tutorial)
     docs.register(delete_tutorial)
@@ -288,7 +288,7 @@
         from .user.views import users
         app.register_blueprint(users)
         
-        from .main.views import get_list, update_list, update_tutorial, delete_tutorial
+        from .main.views import get_user_list, update_list, update_tutorial, delete_tutorial
         ```
     4. 상위모듈의 app객체 대신 bp를 만들어 route들을 모은 뒤 -> 상위모듈에서 bp를 import시킨다.
         ```python
@@ -299,7 +299,7 @@
         ```
         ```python
        from .user.views import users
-        #from .main.views import get_list, update_list, update_tutorial, delete_tutorial
+        #from .main.views import get_user_list, update_list, update_tutorial, delete_tutorial
         from .main.views import videos
         app.register_blueprint(users)
         app.register_blueprint(videos)
@@ -309,7 +309,7 @@
         ```python
         from video_api import logger, docs
         
-        docs.register(get_list, blueprint='videos')
+        docs.register(get_user_list, blueprint='videos')
         docs.register(update_list, blueprint='videos')
         docs.register(update_tutorial, blueprint='videos')
         docs.register(delete_tutorial, blueprint='videos')

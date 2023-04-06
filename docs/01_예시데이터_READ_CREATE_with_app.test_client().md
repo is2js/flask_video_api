@@ -16,12 +16,12 @@ https://www.youtube.com/watch?v=lxd7qSo5vNc&list=PLWQhUNXl0LnjBIaE72hq1RkDsbWWSg
             },
         ]
     ```
-2. 전체데이터 조회(get_list), 데이터 추가(update_list) route를 만들어준다.
+2. 전체데이터 조회(get_user_list), 데이터 추가(update_list) route를 만들어준다.
    - 데이터는 예시데이터를 jsonify()로 내려보내준다.
    - 추가할 데이터는 `request.json`으로 꺼낸다.
    ```python
    @app.route('/tutorials', methods=['GET'])
-   def get_list():
+   def get_user_list():
        # 2. 예시 데이터 반환 route에서 python list는 jsonify로 jsob으로 만들어서 반환해주기
        return jsonify(tutorials)
    
