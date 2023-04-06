@@ -1,8 +1,9 @@
-from app import db, session, Base
+from . import db, session, Base
 from sqlalchemy.orm import relationship
 from flask_jwt_extended import create_access_token
 from datetime import timedelta
 from passlib.hash import bcrypt
+
 class Video(Base):
     __tablename__ = 'videos'
 

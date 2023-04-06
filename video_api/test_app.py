@@ -1,5 +1,5 @@
 import models
-from app import client
+from . import client
 from models import Video
 
 

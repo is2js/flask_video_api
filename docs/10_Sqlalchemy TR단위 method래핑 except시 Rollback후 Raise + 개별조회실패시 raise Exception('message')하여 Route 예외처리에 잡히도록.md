@@ -17,10 +17,10 @@
        ```
    2. 추출한 메서드를 Video(해당 모델) 내부 메서드로 옮기되, Video가 내부에 사용되면 @classmethod로 바꾸고, cls인자로 바꿔준다.
        ```python
-       # app.py
+import video_api.main.views       # app.py
        try:
            user_id = get_jwt_identity()
-           videos = Video.get_list(user_id=user_id)
+           videos = video_api.main.views.get_list(user_id=user_id)
        ```
        ```python
        # models.py
