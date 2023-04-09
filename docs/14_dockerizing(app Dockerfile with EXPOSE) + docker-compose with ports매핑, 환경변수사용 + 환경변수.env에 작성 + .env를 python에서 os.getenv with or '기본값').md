@@ -115,9 +115,10 @@
 
 2. 따옴표 없이 환경변수의 내용을 채운다.
 3. 이미 환경변수 없이 하드코딩으로 작성된 변수가 있을 경우, 다시 .env에서 python파일로 가져다 쓰도록 `os.getenv('')`로 변경한다
+   - **db의 포트는 docker-compose 중`외부 커스텀 port5434:컨테이너내부포트5432고정` 중에 외부커스텀포트5434를 갖다써서 만들어야한다**
    ```python
    # .env
-   DATABASE_URI=postgresql://testuser:testpassword@postgres:5432
+   DATABASE_URI=postgresql://testuser:testpassword@postgres:5434
    SECRET_KEY=
    
    # vidoe_api/config.py
@@ -185,7 +186,9 @@
    ```
    ```
    # 터미널 새로 열어서 ps확인
-   docker-compse ps
+   # docker-compse ps
+   # docker 컨테이너 확인은 docker ps -a로 다 하는 것이 방법이다.
+   docker ps -a
    #          Name                   Command           State           Ports
    # --------------------------------------------------------------------------------
    # flaskproject_app_1       gunicorn -w 3 -b         Up      0.0.0.0:5005->5005/tcp
@@ -201,3 +204,36 @@
    http://localhost:5005/swagger-ui
    ```
    ![img.png](images/docker-compose_swagger.png)
+
+
+### github에 프로젝트 share(push) 후 AWS ssh clone + docker-compose로 실행(DB부터 실행)
+1. 상단 `Git` > github > share project on github
+2. aws서버 접속(ssh configure에서 퍼블릭 IPv4 or 퍼블릭 IPv4 DNS를 보고 수정하여 접속)
+3. github의 ssh주소로 프로젝트 clone
+   ```shell
+   git@github.com:is2js/flask_video_api.git
+   ```
+4. root폴더로 이동 후, docker 버전 확인후 `-d [postgres서비스]`으로 **databse container만 먼저 실행**
+   ```shell
+   ubuntu@ip-172-31-10-50:~$ cd flask_video_api/
+   ubuntu@ip-172-31-10-50:~/flask_video_api$ docker --version
+   Docker version 20.10.22, build 3a2c30b
+   ubuntu@ip-172-31-10-50:~/flask_video_api$ docker-compose --version
+   docker-compose version 1.25.0-rc2, build 661ac20e
+   ubuntu@ip-172-31-10-50:~/flask_video_api$ docker-compose up -d postgres
+   ```
+   - 실행중인 container 확인은 `docker ps -a`로
+   ```shell
+   docker ps -a
+   ```
+   
+4. **`ls -al`로 `.env` 확인 후, `vi .env`로 작성작성(원래는 없어야하는데, 따라옴)**
+   - 환경변수 등을 확인한다.
+   ```shell
+   ls -al
+   vi .env
+   ```
+5. **app 서비스 컨테이너도 추가 실행 `-d app`**
+   ```shell
+   docker-compose up -d app
+   ```
