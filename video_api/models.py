@@ -1,4 +1,5 @@
-from . import db, session, Base
+from . import session, Base # . == __init__.py
+import sqlalchemy as db
 from sqlalchemy.orm import relationship
 from flask_jwt_extended import create_access_token
 from datetime import timedelta

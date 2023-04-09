@@ -2,7 +2,6 @@ import logging
 import os.path
 
 from flask import Flask
-import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -36,7 +35,7 @@ jwt = JWTManager()
 docs = FlaskApiSpec()
 # docs.init_app(app)
 
-engine = create_engine('sqlite:///db.sqlite')
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 
 session = scoped_session(sessionmaker(
     autocommit=False, autoflush=False, bind=engine
